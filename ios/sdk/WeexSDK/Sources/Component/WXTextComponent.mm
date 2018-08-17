@@ -484,7 +484,6 @@ do {\
     CTFontRef ctFont = CTFontCreateWithName((__bridge CFStringRef)font.fontName,
                                            font.pointSize,
                                            NULL);
-    
     _fontAscender = font.ascender;
     _fontDescender = font.descender;
     
