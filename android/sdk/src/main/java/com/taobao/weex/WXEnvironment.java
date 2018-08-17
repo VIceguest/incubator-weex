@@ -98,6 +98,8 @@ public class WXEnvironment {
    * */
   public static long sComponentsAndModulesReadyTime = 0;
 
+  public static boolean sInAliWeex = false;
+
   public static LogLevel sLogLevel = LogLevel.DEBUG;
   private static boolean isApkDebug = true;
   public static boolean isPerf = false;
@@ -108,6 +110,10 @@ public class WXEnvironment {
 
   public static final String CORE_SO_NAME = "weexcore";
   public static final String CORE_JSS_SO_NAME = "weexjss";
+  /**
+   * this marked jsb.so's version, Change this if we want to update jsb.so
+   */
+  public static final int CORE_JSB_SO_VERSION = 1;
 
   private static  String CORE_JSS_SO_PATH = null;
 
@@ -310,6 +316,20 @@ public class WXEnvironment {
     }
 
     return path;
+  }
+
+  public static String getCrashFilePath(Context context) {
+    if (context == null) {
+        return "";
+    }
+
+    File dir = context.getDir("crash", Context.MODE_PRIVATE);
+    if (dir == null)
+        return "";
+
+    String crashDir = dir.getAbsolutePath();
+
+    return crashDir;
   }
 
   public static String getGlobalFontFamilyName() {

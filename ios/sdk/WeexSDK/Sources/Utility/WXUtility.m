@@ -83,7 +83,7 @@ void WXSwizzleInstanceMethod(Class className, SEL original, SEL replaced)
     
     BOOL didAddMethod = class_addMethod(className, original, method_getImplementation(newMethod), method_getTypeEncoding(newMethod));
     if (didAddMethod) {
-        class_replaceMethod(className, replaced, method_getImplementation(newMethod), method_getTypeEncoding(newMethod));
+        class_replaceMethod(className, replaced, method_getImplementation(originalMethod), method_getTypeEncoding(originalMethod));
     } else {
         method_exchangeImplementations(originalMethod, newMethod);
     }
@@ -403,7 +403,11 @@ CGFloat WXFloorPixelValue(CGFloat value)
             if ([subStr hasPrefix:@"rgb"]) {
                 gradientType = [WXConvert gradientType:gradientTypeStr];
                 
-                range = [subStr rangeOfString:@")"];
+                if ([subStr containsString:@"%"]) {
+                    range = [subStr rangeOfString:@"%"];
+                } else {
+                    range = [subStr rangeOfString:@")"];
+                }
                 NSString *startColorStr = [subStr substringToIndex:range.location + 1];
                 NSString *endColorStr = [subStr substringFromIndex:range.location + 2];
                 startColor = [WXConvert UIColor:startColorStr];
@@ -969,6 +973,12 @@ BOOL WXFloatGreaterThanWithPrecision(CGFloat a, CGFloat b ,double precision){
     }
     return nil;
 }
+
++ (long) getUnixCurrentTimeMillis
+{
+    return [[NSDate date] timeIntervalSince1970] * 1000;
+}
+
 @end
 
 

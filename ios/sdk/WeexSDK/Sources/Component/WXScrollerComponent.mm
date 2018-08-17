@@ -173,6 +173,10 @@ WX_EXPORT_METHOD(@selector(resetLoadmore))
             _shouldRemoveScrollerListener = shouldRemoveScrollerListener;
             
         }
+        //may be list
+        if ([@"scroller" isEqualToString:type]) {
+            [weexInstance.apmInstance updateDiffStats:KEY_PAGE_STATS_SCROLLER_NUM withDiffValue:1];
+        }
     }
     
     return self;
@@ -225,8 +229,6 @@ WX_EXPORT_METHOD(@selector(resetLoadmore))
 
 - (void)layoutDidFinish
 {
-
-    
     if ([self isViewLoaded]) {
         [self setContentSize:_contentSize];
         [self adjustSticky];
@@ -234,6 +236,12 @@ WX_EXPORT_METHOD(@selector(resetLoadmore))
     }
     
     [_loadingComponent resizeFrame];
+}
+
+- (void)_buildViewHierarchyLazily
+{
+    [super _buildViewHierarchyLazily];
+    [self handleAppear];
 }
 
 - (void)viewWillUnload

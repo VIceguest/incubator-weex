@@ -47,6 +47,7 @@ import com.taobao.weex.common.Constants;
 import com.taobao.weex.common.ICheckBindingScroller;
 import com.taobao.weex.common.OnWXScrollListener;
 import com.taobao.weex.common.WXThread;
+import com.taobao.weex.performance.WXInstanceApm;
 import com.taobao.weex.ui.ComponentCreator;
 import com.taobao.weex.ui.action.BasicComponentData;
 import com.taobao.weex.ui.component.helper.ScrollStartEndHelper;
@@ -88,6 +89,8 @@ public class WXScroller extends WXVContainer<ViewGroup> implements WXScrollViewL
   public static class Creator implements ComponentCreator {
     @Override
     public WXComponent createInstance(WXSDKInstance instance, WXVContainer parent, BasicComponentData basicComponentData) throws IllegalAccessException, InvocationTargetException, InstantiationException {
+      // For performance message collection
+      instance.setUseScroller(true);
       return new WXScroller(instance, parent, basicComponentData);
     }
   }
@@ -117,6 +120,7 @@ public class WXScroller extends WXVContainer<ViewGroup> implements WXScrollViewL
   public WXScroller(WXSDKInstance instance, WXVContainer parent, BasicComponentData basicComponentData) {
     super(instance, parent, basicComponentData);
     stickyHelper = new WXStickyHelper(this);
+    instance.getApmForInstance().updateDiffStats(WXInstanceApm.KEY_PAGE_STATS_SCROLLER_NUM,1);
   }
 
   /**

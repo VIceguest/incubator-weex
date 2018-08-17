@@ -21,6 +21,9 @@ package com.taobao.weex.common;
 import android.support.annotation.RestrictTo;
 
 import com.taobao.weex.WXEnvironment;
+import com.taobao.weex.WXSDKInstance;
+import com.taobao.weex.WXSDKManager;
+import com.taobao.weex.performance.WXInstanceApm;
 import com.taobao.weex.utils.WXViewUtils;
 
 import java.util.HashMap;
@@ -28,6 +31,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 
+@Deprecated
 public class WXPerformance {
 
   @RestrictTo(RestrictTo.Scope.LIBRARY)
@@ -42,6 +46,9 @@ public class WXPerformance {
     networkType,
     connectionType,
     zcacheInfo,
+    wxContainerName,
+    wxInstanceType,
+    wxParentPage,
     wxdim1,
     wxdim2,
     wxdim3,
@@ -363,11 +370,11 @@ public class WXPerformance {
   public int mActionAddElementCount = 0;
   public int mActionAddElementSumTime = 0;
 
-  public WXPerformance(){
-    mErrMsgBuilder=new StringBuilder();
-  }
+  private String mInstanceId;
 
-  public static void init() {
+  public WXPerformance(String instanceId){
+    mErrMsgBuilder=new StringBuilder();
+    mInstanceId = instanceId;
   }
 
   public Map<String, Double> getMeasureMap() {
@@ -390,7 +397,7 @@ public class WXPerformance {
     quotas.put(Measure.JSTemplateSize.toString(), JSTemplateSize);
     quotas.put(Measure.pureNetworkTime.toString(), (double) pureNetworkTime);
     quotas.put(Measure.networkTime.toString(), (double) networkTime);
-    quotas.put(Measure.fsCreateInstanceTime.toString(), (double) (callCreateInstanceTime - renderTimeOrigin));
+    quotas.put(Measure.fsCreateInstanceTime.toString(), (double) callCreateInstanceTime);
     quotas.put(Measure.fsCallJsTotalTime.toString(), (double) fsCallJsTotalTime);
     quotas.put(Measure.fsCallJsTotalNum.toString(), (double) fsCallJsTotalNum);
     quotas.put(Measure.fsCallNativeTotalTime.toString(), (double) fsCallNativeTotalTime);
@@ -454,6 +461,14 @@ public class WXPerformance {
     quotas.put(Dimension.zcacheInfo.toString(), zCacheInfo);
     quotas.put(Dimension.cacheType.toString(), cacheType);
     quotas.put(Dimension.useScroller.toString(), String.valueOf(useScroller));
+
+    WXSDKInstance sdkInstance = WXSDKManager.getInstance().getSDKInstance(mInstanceId);
+    String keyActivity = WXInstanceApm.KEY_PAGE_PROPERTIES_CONTAINER_NAME;
+    quotas.put(keyActivity, null == sdkInstance? "unKnow" : sdkInstance.getContainerInfo().get(keyActivity));
+    String keyType = WXInstanceApm.KEY_PAGE_PROPERTIES_INSTANCE_TYPE;
+    quotas.put(keyType,sdkInstance == null ?"unKnow": sdkInstance.getContainerInfo().get(keyType));
+    String keyParentPae = WXInstanceApm.KEY_PAGE_PROPERTIES_PARENT_PAGE;
+    quotas.put(keyParentPae,null == sdkInstance ?"unKnow":sdkInstance.getContainerInfo().get(keyParentPae));
 
     // TODO These attribute will be moved to elsewhere
     // Extra Dimension for 3rd developers.

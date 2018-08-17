@@ -30,6 +30,7 @@ import com.taobao.weex.common.IWXBridge;
 import com.taobao.weex.common.WXErrorCode;
 import com.taobao.weex.dom.CSSShorthand;
 import com.taobao.weex.layout.ContentBoxMeasurement;
+import com.taobao.weex.performance.WXInstanceApm;
 import com.taobao.weex.utils.WXExceptionUtils;
 import com.taobao.weex.utils.WXLogUtils;
 import com.taobao.weex.utils.WXWsonJSONSwitch;
@@ -48,6 +49,8 @@ public class WXBridge implements IWXBridge {
   private native int nativeInitFrameworkEnv(String framework, WXParams params, String cacheDir, boolean pieSupport);
 
   private native int nativeInitFramework(String framework, WXParams params);
+
+  private native void nativeRefreshInstance(String instanceId, String namespace, String function, WXJSObject[] args);
 
   private native int nativeExecJS(String instanceId, String name, String function, WXJSObject[] args);
 
@@ -113,6 +116,11 @@ public class WXBridge implements IWXBridge {
     } else {
       return nativeInitFramework(framework, params);
     }
+  }
+
+  @Override
+  public void refreshInstance(String instanceId, String namespace, String function, WXJSObject[] args) {
+    nativeRefreshInstance(instanceId, namespace, function, args);
   }
 
   @Override
@@ -185,6 +193,14 @@ public class WXBridge implements IWXBridge {
       errorCode = WXBridgeManager.getInstance().callNative(instanceId, tasks, callback);
     } catch (Throwable e) {
       WXLogUtils.e(TAG, "callNative throw exception:" + e.getMessage());
+    }
+
+    if (null != instance){
+      instance.getApmForInstance().updateFSDiffStats(WXInstanceApm.KEY_PAGE_STATS_FS_CALL_NATIVE_NUM,1);
+      instance.getApmForInstance().updateFSDiffStats(
+          WXInstanceApm.KEY_PAGE_STATS_FS_CALL_NATIVE_TIME,
+          System.currentTimeMillis()-start
+      );
     }
 
     if (WXEnvironment.isApkDebugable()) {
@@ -305,7 +321,7 @@ public class WXBridge implements IWXBridge {
 
   @Override
   public void reportServerCrash(String instanceId, String crashFile) {
-    WXLogUtils.e(TAG, "reportServerCrash instanceId:" + instanceId);
+    WXLogUtils.e(TAG, "reportServerCrash instanceId:" + instanceId + " crashFile: " + crashFile);
     int errorCode = IWXBridge.INSTANCE_RENDERING;
     try {
       errorCode = WXBridgeManager.getInstance().callReportCrashReloadPage(instanceId, crashFile);
